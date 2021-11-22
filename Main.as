@@ -4,27 +4,60 @@
 
 
 	public class Main extends MovieClip {
-		var w: int = 400;
-		var h: int = 400;
-		var src: IMG = new IMG();
+		
+		private static const PI_M2:Number = Math.PI*2;
+		private static const PI_D2:Number = Math.PI/2;
+		
+		var w: int = stage.stageWidth;
+		var h: int = stage.stageHeight;
+		
+		var imagesArr:Array = [new Earth(), new Jupiter(),  new Moon(), new Mars()];
+		var currImg:int = 0;
+		var counter:int = 1;
+		
 		var bd: BitmapData = new BitmapData(w, h, false, 0x000000);
 		var bmp: Bitmap = new Bitmap(bd);
+		var src:BitmapData;
 
 		var currStartCol: int = 0;
-		var rotSpeed: int = 20;
+		var rotSpeed: int = 1;
 		public function Main() {
 			// constructor code
 			stage.addChild(bmp);
+			setUpStars();
 
 			bmp.x = (stage.stageWidth - bmp.width) / 2;
 			bmp.y = (stage.stageHeight - bmp.height) / 2;
+			src = imagesArr[currImg];
 
 			stage.addEventListener(Event.ENTER_FRAME, update);
+		}
+		
+		function setUpStars():void
+		{
+			var numStars:int = 400;
+			
+			for(var i:int = 0; i < numStars; i++)
+			{
+				bd.setPixel(Math.random() * bd.width, Math.random() * bd.height, 0xcccccc); 
+			}
 		}
 
 
 
 		function update(e: Event): void {
+			
+			counter++;
+			if (counter % 200 == 0)
+			{
+				currImg++;
+				if(currImg >= imagesArr.length)
+				{
+					currImg = 0;
+				}
+				src = imagesArr[currImg];
+			}
+			
 			bd.lock();
 			//render(); //60 thousand iterations
 			render1(); //16 thousand iterations
@@ -42,6 +75,8 @@
 			}
 			return src.getPixel(c, row)
 		}
+		
+
 
 		function render1(): void {
 
@@ -59,7 +94,7 @@
 			//will affect how many rows we draw
 			var angleIncrement: Number = (Math.PI * 2) / 1300;
 			//the radius of the circle
-			var rad: Number = w / 2;
+			var rad: Number = w / 3;
 			//the step increment from zero to radius, will affect how many colums we draw
 			var stepIncrement: Number = 1;
 			var totalSteps: Number = (rad / stepIncrement) * 2;
@@ -104,7 +139,11 @@
 				var cols: int = rightX - leftX;
 				for (var i: int = 0; i < cols; i++) {
 					xPer = i / cols;
-					origRow = yPer * (src.height / 2);
+					
+					// t: current time, b: begInnIng value, c: change In value, d: duration
+					//xPer = easeInOutQuint (xPer, 0, 1, 1);
+					
+					origRow = yPer * src.height ;
 					origCol = xPer * (src.width / 2);
 
 					bd.setPixel(leftX + i, currPointY, getPixel(origCol, origRow));
@@ -131,14 +170,13 @@
 			//will affect how many rows we draw
 			var angleIncrement: Number = (Math.PI * 2) / 1300;
 			//the radius of the circle
-			var rad: Number = w / 2;
+			var rad: Number = w / 3;
 			//the step increment from zero to radius, will affect how many colums we draw
 			var stepIncrement: Number = 1;
 			var totalSteps: Number = (rad / stepIncrement) * 2;
 			var currLeftCol: Number = 0;
 			var currRightCol: Number = totalSteps;
 			var arr: Array = [];
-			var numIterations:int = 0;
 
 			for (var i: Number = 0; i < rad; i += stepIncrement) {
 				var _i = i;
@@ -179,7 +217,7 @@
 					xPer = currLeftCol / totalSteps;
 					yPer = currRow / totalAngles;
 
-					origRow = yPer * (src.height / 2);
+					origRow = yPer * src.height ;
 					origCol = xPer * (src.width / 2);
 
 					bd.setPixel(currPointX, currPointY, getPixel(origCol, origRow));
@@ -191,19 +229,47 @@
 					xPer = currRightCol / totalSteps;
 					yPer = currRow / totalAngles;
 
-					origRow = yPer * (src.height / 2);
+					origRow = yPer * src.height ;
 					origCol = xPer * (src.width / 2);
 					bd.setPixel(currPointX, currPointY, getPixel(origCol, origRow));
-					numIterations++;
 
 				}
 				currLeftCol++;
 				currRightCol--;
 
 			}
-			trace(numIterations);
 		}
 
 	}
 
 }
+
+
+/*
+// t: current time, b: begInnIng value, c: change In value, d: duration
+		public static function easeInSine (t:Number, b:Number, c:Number, d:Number):Number
+		{
+			return -c * Math.cos(t/d * PI_D2) + c + b;
+		}
+		public static function easeOutSine (t:Number, b:Number, c:Number, d:Number):Number
+		{
+			return c * Math.sin(t/d * PI_D2) + b;
+		}
+		public static function easeInOutSine (t:Number, b:Number, c:Number, d:Number):Number
+		{
+			return -c/2 * (Math.cos(Math.PI*t/d) - 1) + b;
+		}
+		public static function easeInQuint (t:Number, b:Number, c:Number, d:Number):Number
+		{
+			return c*(t/=d)*t*t*t*t + b;
+		}
+		public static function easeOutQuint (t:Number, b:Number, c:Number, d:Number):Number
+		{
+			return c*((t=t/d-1)*t*t*t*t + 1) + b;
+		}
+		public static function easeInOutQuint (t:Number, b:Number, c:Number, d:Number):Number
+		{
+			if ((t/=d/2) < 1) return c/2*t*t*t*t*t + b;
+			return c/2*((t-=2)*t*t*t*t + 2) + b;
+		}
+		*/
